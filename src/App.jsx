@@ -98,14 +98,55 @@ function App() {
         </div>
 
         {tasks.length > 0 && (
-          <footer className="mt-8 pt-6 border-t border-slate-200 flex justify-between items-center text-sm text-slate-500">
-            <span>{tasks.filter(t => t.completed).length} of {tasks.length} tasks completed</span>
-            <button 
-              onClick={() => setTasks(tasks.filter(t => !t.completed))}
-              className="text-indigo-600 hover:text-indigo-800 font-medium"
-            >
-              Clear Completed
-            </button>
+          <footer className="mt-8 pt-6 border-t border-slate-200 flex flex-col gap-4 text-sm text-slate-500">
+            <div className="flex justify-between items-center">
+              <span>{tasks.filter(t => t.completed).length} of {tasks.length} tasks completed</span>
+              <button 
+                onClick={() => setTasks(tasks.filter(t => !t.completed))}
+                className="text-indigo-600 hover:text-indigo-800 font-medium"
+              >
+                Clear Completed
+              </button>
+            </div>
+            
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={async () => {
+                  if (!("Notification" in window)) {
+                    alert("This browser does not support desktop notification");
+                    return;
+                  }
+
+                  let permission = Notification.permission;
+                  if (permission !== "granted" && permission !== "denied") {
+                    permission = await Notification.requestPermission();
+                  }
+
+                  if (permission === "granted") {
+                    const registration = await navigator.serviceWorker.ready;
+                    if (registration && registration.showNotification) {
+                      registration.showNotification("LifeTrack PWA!", {
+                        body: "Push notification check via Service Worker successful.",
+                        icon: "/favicon.png",
+                        badge: "/favicon.png",
+                      });
+                    } else {
+                      new Notification("LifeTrack Test!", { 
+                        body: "Push notification check successful (Local API)." 
+                      });
+                    }
+                  } else {
+                    alert("Notification permission denied.");
+                  }
+                }}
+                className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                Test Notifications
+              </button>
+            </div>
           </footer>
         )}
       </div>
