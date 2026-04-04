@@ -4,12 +4,20 @@ import { useState, useEffect } from 'react';
 
 const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
+  const [userName, setUserName] = useState('Likhon Sorkar');
 
   useEffect(() => {
-    const saved = localStorage.getItem('lifetrack_tasks');
-    if (saved) {
-      setTasks(JSON.parse(saved));
-    }
+    const loadData = () => {
+      const savedTasks = localStorage.getItem('lifetrack_tasks');
+      if (savedTasks) setTasks(JSON.parse(savedTasks));
+      
+      const savedSettings = localStorage.getItem('lifetrack_settings');
+      if (savedSettings) setUserName(JSON.parse(savedSettings).userName);
+    };
+
+    loadData();
+    window.addEventListener('storage', loadData);
+    return () => window.removeEventListener('storage', loadData);
   }, []);
 
   const completedTasks = tasks.filter(t => t.completed).length;
@@ -26,7 +34,7 @@ const Dashboard = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <header>
-        <h2 className="text-2xl font-bold text-slate-900">Welcome back, Likhon!</h2>
+        <h2 className="text-2xl font-bold text-slate-900">Welcome back, {userName.split(' ')[0]}!</h2>
         <p className="text-slate-500">Here's what's happening with your goals today.</p>
       </header>
 

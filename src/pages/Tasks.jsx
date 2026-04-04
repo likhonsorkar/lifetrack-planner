@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, CheckCircle, Circle } from 'lucide-react'
+import { Plus, Trash2, CheckCircle, Circle, Calendar, Clock, Bell, CalendarIcon  } from 'lucide-react'
+import { format, isAfter, parseISO } from 'date-fns'
 
 const Tasks = () => {
   const [tasks, setTasks] = useState(() => {
@@ -8,6 +9,9 @@ const Tasks = () => {
     return saved ? JSON.parse(saved) : [];
   });
   const [input, setInput] = useState('');
+  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [time, setTime] = useState(format(new Date(), 'HH:mm'));
+  const [reminder, setReminder] = useState('0');
 
   useEffect(() => {
     localStorage.setItem('lifetrack_tasks', JSON.stringify(tasks));
@@ -16,7 +20,16 @@ const Tasks = () => {
   const addTask = (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-    setTasks([...tasks, { id: Date.now(), text: input, completed: false }]);
+    const newTask = {
+      id: Date.now(),
+      text: input,
+      completed: false,
+      date,
+      time,
+      reminderMinutes: parseInt(reminder),
+      notified: false
+    };
+    setTasks([...tasks, newTask]);
     setInput('');
   };
 
@@ -44,19 +57,58 @@ const Tasks = () => {
         </div>
       </header>
 
-      <form onSubmit={addTask} className="relative group">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="What needs to be done?"
-          className="w-full pl-4 pr-12 py-4 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm transition-all text-lg"
-        />
+      <form onSubmit={addTask} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+        <div className="relative">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="What needs to be done?"
+            className="w-full pl-4 pr-12 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 transition-all text-lg"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm"
+            />
+          </div>
+          <div className="relative">
+            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm"
+            />
+          </div>
+          <div className="relative">
+            <Bell className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <select
+              value={reminder}
+              onChange={(e) => setReminder(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm appearance-none"
+            >
+              <option value="0">At time</option>
+              <option value="5">5m before</option>
+              <option value="15">15m before</option>
+              <option value="30">30m before</option>
+              <option value="60">1h before</option>
+            </select>
+          </div>
+        </div>
+
         <button
           type="submit"
-          className="absolute right-2 top-2 bottom-2 px-4 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm flex items-center justify-center"
+          className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-md flex items-center justify-center gap-2"
         >
           <Plus className="w-5 h-5" />
+          Add Task
         </button>
       </form>
 
@@ -74,7 +126,12 @@ const Tasks = () => {
               <p className="text-slate-400 font-medium">Your planner is empty. Ready to start?</p>
             </motion.div>
           ) : (
-            tasks.map(task => (
+            tasks.sort((a, b) => {
+              if (!a.date || !b.date) return 0;
+              const dateA = new Date(`${a.date}T${a.time || '00:00'}`);
+              const dateB = new Date(`${b.date}T${b.time || '00:00'}`);
+              return dateA - dateB;
+            }).map(task => (
               <motion.div
                 key={task.id}
                 initial={{ opacity: 0, x: -10 }}
@@ -84,20 +141,42 @@ const Tasks = () => {
                   task.completed ? 'bg-slate-50/50' : ''
                 }`}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 overflow-hidden">
                   <button
                     onClick={() => toggleTask(task.id)}
-                    className={`transition-colors ${task.completed ? 'text-emerald-500' : 'text-slate-300 hover:text-indigo-400'}`}
+                    className={`flex-shrink-0 transition-colors ${task.completed ? 'text-emerald-500' : 'text-slate-300 hover:text-indigo-400'}`}
                   >
                     {task.completed ? <CheckCircle className="w-6 h-6" /> : <Circle className="w-6 h-6" />}
                   </button>
-                  <span className={`text-lg transition-all ${task.completed ? 'line-through text-slate-400' : 'text-slate-700'}`}>
-                    {task.text}
-                  </span>
+                  <div className="overflow-hidden">
+                    <span className={`text-lg block truncate transition-all ${task.completed ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+                      {task.text}
+                    </span>
+                    <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
+                      {task.date && (
+                        <span className="flex items-center gap-1">
+                          <CalendarIcon className="w-3 h-3" />
+                          {format(parseISO(task.date), 'MMM d, yyyy')}
+                        </span>
+                      )}
+                      {task.time && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {task.time}
+                        </span>
+                      )}
+                      {task.reminderMinutes > 0 && (
+                        <span className="flex items-center gap-1 text-indigo-400">
+                          <Bell className="w-3 h-3" />
+                          {task.reminderMinutes}m before
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 <button
                   onClick={() => deleteTask(task.id)}
-                  className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                  className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all flex-shrink-0"
                   aria-label="Delete task"
                 >
                   <Trash2 className="w-5 h-5" />

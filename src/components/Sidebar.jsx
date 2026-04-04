@@ -1,12 +1,37 @@
+import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Settings, Menu, X, Calendar, PieChart } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Settings, X, Calendar, PieChart, FileText, Fingerprint, Moon, Code2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [userName, setUserName] = useState('Likhon Sorkar');
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    const loadSettings = () => {
+      const saved = localStorage.getItem('lifetrack_settings');
+      if (saved) setUserName(JSON.parse(saved).userName);
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('storage', loadSettings);
+    loadSettings();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('storage', loadSettings);
+    };
+  }, []);
+
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard className="w-5 h-5" /> },
     { name: 'Tasks', path: '/tasks', icon: <CheckSquare className="w-5 h-5" /> },
     { name: 'Calendar', path: '/calendar', icon: <Calendar className="w-5 h-5" /> },
+    { name: 'Notes', path: '/notes', icon: <FileText className="w-5 h-5" /> },
+    { name: 'Tasbih', path: '/tasbih', icon: <Fingerprint className="w-5 h-5" /> },
+    { name: 'Prayer Times', path: '/prayer-times', icon: <Moon className="w-5 h-5" /> },
+    { name: 'Developer', path: '/developer', icon: <Code2 className="w-5 h-5" /> },
     { name: 'Analytics', path: '/analytics', icon: <PieChart className="w-5 h-5" /> },
     { name: 'Settings', path: '/settings', icon: <Settings className="w-5 h-5" /> },
   ];
@@ -20,7 +45,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     <>
       {/* Mobile Backdrop */}
       <AnimatePresence>
-        {isOpen && (
+        {!isDesktop && isOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -33,10 +58,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
       {/* Sidebar Content */}
       <motion.aside
-        initial="closed"
-        animate={isOpen ? 'open' : 'closed'}
+        initial={false}
+        animate={isDesktop ? { x: 0, opacity: 1 } : (isOpen ? 'open' : 'closed')}
         variants={sidebarVariants}
-        className={`fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-slate-200 z-50 flex flex-col lg:translate-x-0 lg:static lg:opacity-100 lg:h-screen`}
+        className={`fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-slate-200 z-50 flex flex-col lg:relative lg:translate-x-0 lg:opacity-100 lg:h-screen`}
       >
         <div className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -55,7 +80,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <NavLink
               key={item.path}
               to={item.path}
-              onClick={() => { if (window.innerWidth < 1024) toggleSidebar(); }}
+              onClick={() => { if (!isDesktop) toggleSidebar(); }}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
                   isActive
@@ -73,10 +98,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         <div className="p-4 border-t border-slate-100 mt-auto">
           <div className="flex items-center gap-3 p-2 rounded-xl bg-slate-50 border border-slate-200">
             <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
-              LS
+              {userName.split(' ').map(n => n[0]).join('').toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-900 truncate">Likhon Sorkar</p>
+              <p className="text-sm font-semibold text-slate-900 truncate">{userName}</p>
               <p className="text-xs text-slate-500 truncate">Pro Plan</p>
             </div>
           </div>
