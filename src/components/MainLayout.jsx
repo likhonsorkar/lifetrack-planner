@@ -5,7 +5,7 @@ import { Menu, Bell, Search } from 'lucide-react';
 import useNotificationManager from '../hooks/useNotificationManager';
 
 const MainLayout = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   useNotificationManager();
 
   useEffect(() => {

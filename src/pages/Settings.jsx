@@ -48,6 +48,19 @@ const Settings = () => {
     }, 600);
   };
 
+  const handleHardReload = () => {
+    if (window.confirm('This will refresh the app and clear cache. Continue?')) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+      window.location.reload(true);
+    }
+  };
+
   const handleToggleNotifications = async () => {
     if (Notification.permission === 'default') {
       const permission = await Notification.requestPermission();
@@ -159,7 +172,8 @@ const Settings = () => {
                     {[
                       { key: 'lockTasks', label: 'Tasks' },
                       { key: 'lockNotes', label: 'Notes' },
-                      { key: 'lockWallet', label: 'Wallet' }
+                      { key: 'lockWallet', label: 'Wallet' },
+                      { key: 'lockTasbih', label: 'Tasbih' }
                     ].map(({ key, label }) => (
                       <button
                         key={key}
@@ -246,6 +260,12 @@ const Settings = () => {
                 <Upload className="w-5 h-5" /> Import Data
                 <input type="file" accept=".json" onChange={handleImportAll} className="hidden" />
               </label>
+              <button 
+                onClick={handleHardReload}
+                className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-amber-50 rounded-2xl transition-colors text-sm font-bold text-slate-700 sm:col-span-2"
+              >
+                <RefreshCw className="w-5 h-5 text-amber-600" /> Update App (Hard Reload)
+              </button>
             </div>
           </section>
         </div>
