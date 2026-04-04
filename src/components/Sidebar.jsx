@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Settings, X, Calendar, PieChart, FileText, Fingerprint, Moon, Code2 } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Settings, X, Calendar, PieChart, FileText, Fingerprint, Moon, Code2, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -27,6 +27,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard className="w-5 h-5" /> },
     { name: 'Tasks', path: '/tasks', icon: <CheckSquare className="w-5 h-5" /> },
+    { name: 'Wallet', path: '/wallet', icon: <Wallet className="w-5 h-5" /> },
     { name: 'Calendar', path: '/calendar', icon: <Calendar className="w-5 h-5" /> },
     { name: 'Notes', path: '/notes', icon: <FileText className="w-5 h-5" /> },
     { name: 'Tasbih', path: '/tasbih', icon: <Fingerprint className="w-5 h-5" /> },
@@ -66,7 +67,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         <div className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">L</span>
+              {/* <span className="text-white font-bold text-xl">L</span> */}
+              <img src='/favicon.png'/>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">LifeTrack</h1>
           </div>

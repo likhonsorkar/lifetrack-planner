@@ -12,10 +12,27 @@ const Tasks = () => {
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [time, setTime] = useState(format(new Date(), 'HH:mm'));
   const [reminder, setReminder] = useState('0');
+  const [isDaily, setIsDaily] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('lifetrack_tasks', JSON.stringify(tasks));
   }, [tasks]);
+
+  // Handle Daily Task Reset Logic
+  useEffect(() => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const lastReset = localStorage.getItem('lifetrack_last_reset');
+    
+    if (lastReset !== today) {
+      setTasks(prevTasks => prevTasks.map(task => {
+        if (task.isDaily) {
+          return { ...task, completed: false, date: today };
+        }
+        return task;
+      }));
+      localStorage.setItem('lifetrack_last_reset', today);
+    }
+  }, []);
 
   const addTask = (e) => {
     e.preventDefault();
@@ -24,13 +41,15 @@ const Tasks = () => {
       id: Date.now(),
       text: input,
       completed: false,
-      date,
+      date: isDaily ? format(new Date(), 'yyyy-MM-dd') : date,
       time,
       reminderMinutes: parseInt(reminder),
-      notified: false
+      notified: false,
+      isDaily
     };
     setTasks([...tasks, newTask]);
     setInput('');
+    setIsDaily(false);
   };
 
   const toggleTask = (id) => {
@@ -76,6 +95,7 @@ const Tasks = () => {
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="w-full pl-10 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm"
+              disabled={isDaily}
             />
           </div>
           <div className="relative">
@@ -87,19 +107,17 @@ const Tasks = () => {
               className="w-full pl-10 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm"
             />
           </div>
-          <div className="relative">
-            <Bell className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <select
-              value={reminder}
-              onChange={(e) => setReminder(e.target.value)}
-              className="w-full pl-10 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm appearance-none"
-            >
-              <option value="0">At time</option>
-              <option value="5">5m before</option>
-              <option value="15">15m before</option>
-              <option value="30">30m before</option>
-              <option value="60">1h before</option>
-            </select>
+          <div className="relative flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50">
+            <input
+              type="checkbox"
+              id="isDaily"
+              checked={isDaily}
+              onChange={(e) => setIsDaily(e.target.checked)}
+              className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded"
+            />
+            <label htmlFor="isDaily" className="text-sm font-medium text-slate-600 cursor-pointer">
+              Repeat Daily
+            </label>
           </div>
         </div>
 

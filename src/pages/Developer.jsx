@@ -6,7 +6,7 @@ const Developer = () => {
     { name: 'GitHub', icon: <i className="devicon-github-original text-xl"></i>, url: 'https://github.com/likhonsorkar', color: 'bg-slate-900' },
     { name: 'LinkedIn', icon: <i className="devicon-linkedin-plain text-xl"></i>, url: 'https://linkedin.com/in/likhonsorkar', color: 'bg-blue-600' },
     { name: 'Facebook', icon: <i className="devicon-facebook-plain text-xl"></i>, url: 'https://facebook.com/likhon.com.bd', color: 'bg-indigo-600' },
-    { name: 'Portfolio', icon: <img src='/favicon.png' />, url: 'https://likhonsorkar.com', color: '' },
+    { name: 'Portfolio', icon: <img className='w-5' src='/favicon.png' />, url: 'https://likhon.com.bd', color: 'bg-blue-600' },
   ];
 
   const skills = [

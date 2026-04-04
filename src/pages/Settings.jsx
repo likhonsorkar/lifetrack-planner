@@ -1,27 +1,44 @@
 import { useState, useEffect } from 'react';
-import { Bell, Shield, Trash2, Download, Upload, Info, User, Palette, Check, Save, Globe } from 'lucide-react';
+import { Bell, Shield, RefreshCw , Trash2, Download, Upload, Info, User, Palette, Check, Save, Globe, Lock } from 'lucide-react';
 
 const Settings = () => {
   const [settings, setSettings] = useState({
-    userName: 'Likhon Sorkar',
+    userName: 'Your Name',
     notificationsEnabled: Notification.permission === 'granted',
     prayerNotifications: true,
     defaultReminder: '15',
     asrMethod: '0', // 0: Standard, 1: Hanafi
-    calculationMethod: '2' // 2: ISNA, 1: Karachi, etc.
+    calculationMethod: '1', // 2: ISNA, 1: Karachi, etc.
+    privacyPin: '',
+    lockTasks: false,
+    lockNotes: false,
+    lockWallet: false,
+    lockTasbih: false
   });
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveStatus] = useState(null);
+  const [pinInput, setPinInput] = useState('');
 
   useEffect(() => {
     const saved = localStorage.getItem('lifetrack_settings');
-    if (saved) setSettings(JSON.parse(saved));
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setSettings(prev => ({...prev, ...parsed}));
+      if (parsed.privacyPin) setPinInput(parsed.privacyPin);
+    }
   }, []);
 
   const handleSave = () => {
+    if (pinInput && pinInput.length !== 4 && pinInput.length !== 0) {
+      alert("PIN must be 4 digits or empty to disable.");
+      return;
+    }
+    
     setIsSaving(true);
-    localStorage.setItem('lifetrack_settings', JSON.stringify(settings));
+    const updatedSettings = { ...settings, privacyPin: pinInput };
+    setSettings(updatedSettings);
+    localStorage.setItem('lifetrack_settings', JSON.stringify(updatedSettings));
     window.dispatchEvent(new Event('storage'));
     
     setTimeout(() => {
@@ -114,6 +131,52 @@ const Settings = () => {
                 onChange={(e) => setSettings({ ...settings, userName: e.target.value })}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all font-semibold"
               />
+            </div>
+          </section>
+
+          {/* Privacy & Security */}
+          <section className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+            <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+              <Lock className="w-5 h-5 text-indigo-600" /> Privacy & Security
+            </h3>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <label className="block text-sm font-bold text-slate-400 uppercase tracking-widest">Privacy PIN (4 digits)</label>
+                <input 
+                  type="password" 
+                  maxLength="4"
+                  placeholder="Leave empty to disable"
+                  value={pinInput}
+                  onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all font-mono text-xl tracking-[1em] text-center"
+                />
+              </div>
+
+              {pinInput.length === 4 && (
+                <div className="space-y-4 pt-4 border-t border-slate-50">
+                  <p className="text-sm font-bold text-slate-700">Lock specific sections:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {[
+                      { key: 'lockTasks', label: 'Tasks' },
+                      { key: 'lockNotes', label: 'Notes' },
+                      { key: 'lockWallet', label: 'Wallet' }
+                    ].map(({ key, label }) => (
+                      <button
+                        key={key}
+                        onClick={() => setSettings({ ...settings, [key]: !settings[key] })}
+                        className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                          settings[key] 
+                            ? 'bg-indigo-50 border-indigo-200 text-indigo-700' 
+                            : 'bg-slate-50 border-slate-200 text-slate-500'
+                        }`}
+                      >
+                        <span className="font-bold text-sm">{label}</span>
+                        {settings[key] ? <Lock className="w-4 h-4" /> : <Shield className="w-4 h-4 opacity-30" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
